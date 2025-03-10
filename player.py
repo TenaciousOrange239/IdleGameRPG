@@ -12,3 +12,6 @@ class Player:
     def attack(self):
         dmg_dealt =
 
+    def check_stats(self):
+        
+
