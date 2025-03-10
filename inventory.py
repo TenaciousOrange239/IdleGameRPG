@@ -12,4 +12,8 @@ class Inventory:
 
     def remove_item(self,item,quantity=1):
         if item in self.items:
+            if self.items[item.name]['quantity'] > quantity:
+                self.items[item.name]['quantity'] -= quantity
+            else:
+
 
