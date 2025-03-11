@@ -15,5 +15,13 @@ class Inventory:
             if self.items[item.name]['quantity'] > quantity:
                 self.items[item.name]['quantity'] -= quantity
             else:
+                del self.items[item.name]
 
+        else:
+            print(f"You don't have {item.name} in your inventory.")
+
+    def display_inv(self):
+        print("Inventory")
+        for item_name, item_data in self.items.items():
+            print(f"- {item_name}: {item_data["quantity"]}")
 
