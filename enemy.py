@@ -96,7 +96,7 @@ class DarkenedDrake(Mob):
     super().__init__(name="Darkened Drake", hp=20, atk=2, defence=1, loot=["Chicken", "Feathers"], gold_drop=5, xp_drop=10, dodge_chance=(100 * 0.05))
 
 class RavioliosProtectorOfTheCity(Boss):
-    super().__init__(name="Raviolios Protector Of The City", hp=20, atk=2, defence=1, loot=["Chicken", "Feathers"], gold_drop=5, xp_drop=10, dodge_chance=(100 * 0.05))
+    super().__init__(name="Ravioli(os) Protector Of The City", hp=20, atk=2, defence=1, loot=["Glock 20", "Perc-60"], gold_drop=500000, xp_drop=100000, dodge_chance=(100 * 0.30))
 
 class VoidboundKnight(Mob):
     super().__init__(name="Voidbound Knight", hp=20, atk=2, defence=1, loot=["Chicken", "Feathers"], gold_drop=5, xp_drop=10, dodge_chance=(100 * 0.05))
