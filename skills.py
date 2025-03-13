@@ -8,4 +8,5 @@ class Skill:
     def train_skill(self):
         pass
 
-class
+class Mining(Skill):
+    super().__init__(name="Mining", level=0, xp=0)
