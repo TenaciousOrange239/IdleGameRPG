@@ -1,17 +1,25 @@
 import os
+from sys import displayhook
+
 import pygame
 import time
 
 pygame.init()
 
-canvas = pygame.display.set_mode((1280,720))
+rect_color = (255,0,0)
+
+canvas = pygame.display.set_mode((1280,720), pygame.RESIZABLE)
 
 pygame.display.set_caption("Lol")
-exit = False
+image = pygame.image.load("bh.png")
 
-while not exit:
+leave = False
+
+while not leave:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            exit = True
+            leave = True
     pygame.display.update()
 
+    canvas.blit(image,(0,0))
+    pygame.display.flip()
