@@ -23,3 +23,4 @@ while not leave:
 
     canvas.blit(image,(0,0))
     pygame.display.flip()
+
