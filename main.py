@@ -19,6 +19,7 @@ while not leave:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             leave = True
+
     pygame.display.update()
 
     canvas.blit(image,(0,0))
