@@ -24,4 +24,3 @@ class Inventory:
         print("Inventory")
         for item_name, item_data in self.items.items():
             print(f"- {item_name}: {item_data["quantity"]}")
-

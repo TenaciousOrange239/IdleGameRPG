@@ -11,7 +11,7 @@ rect_color = (255,0,0)
 canvas = pygame.display.set_mode((1280,720), pygame.RESIZABLE)
 
 pygame.display.set_caption("Lol")
-image = pygame.image.load("bh.png")
+image = pygame.image.load("images/bh.png")
 
 leave = False
 

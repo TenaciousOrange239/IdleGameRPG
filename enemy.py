@@ -111,7 +111,7 @@ class LegionOfDarkness(Mob):
     super().__init__(name="Legion Of Darkness", hp=20, atk=2, defence=1, loot=["Chicken", "Feathers"], gold_drop=5, xp_drop=10, dodge_chance=(100 * 0.05))
 
 class YaoYaoTouchedByTheVoid(Boss):
-    super().__init__(name="Yao Yao, Touched By TheVoid", hp=20, atk=2, defence=1, loot=["Chicken", "Feathers"], gold_drop=5, xp_drop=10, dodge_chance=(100 * 0.05))
+    super().__init__(name="Yao Yao, Touched By The Void", hp=20, atk=2, defence=1, loot=["Chicken", "Feathers"], gold_drop=5, xp_drop=10, dodge_chance=(100 * 0.05))
 
 class AeneasDarknessAbsolute(Boss):
     super().__init__(name="Aeneas, Darkness Absolute", hp=20, atk=2, defence=1, loot=["Chicken", "Feathers"], gold_drop=5, xp_drop=10, dodge_chance=(100 * 0.05))

@@ -42,7 +42,3 @@ while True:
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
             button.checkforInput(pygame.mouse.get_pos())
-
-
-
-
