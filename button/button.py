@@ -12,25 +12,25 @@ class Button:
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
-        self.txt = main_font.render(self.txt_input, True, "white")
         self.txt_input = txt_input
+        self.txt = main_font.render(self.txt_input, True, "white")
         self.txt_rect = self.txt.get_rect(center=(self.x_pos,self.y_pos))
 
-        def update(self):
+    def update(self):
             screen.blit(self.image, self.rect)
             screen.blit(self.txt, self.txt_rect)
 
-        def checkforInput(position):
-            if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
-                print("Button Pressed!")
+    def checkforInput(self,position):
+        if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+            print("Button Pressed!")
 
-        def changeColour(position):
-            if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
-                self.txt = main_font.render(self.txt_input, True, "green")
-            else:
-                self.txt = main_font.render(self.txt_input, True, "white")
+    def changeColour(self,position):
+        if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+            self.txt = main_font.render(self.txt_input, True, "green")
+        else:
+            self.txt = main_font.render(self.txt_input, True, "white")
 
-button_surface = pygame.image.load("")
+button_surface = pygame.image.load("bh.png")
 button_surface = pygame.transform.scale(button_surface, (400,150))
 
 button = Button(button_surface, 400, 300, "Click")
@@ -43,6 +43,8 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN:
             button.checkforInput(pygame.mouse.get_pos())
 
+    button.update()
+    button.changeColour(pygame.mouse.get_pos())
 
-
+    pygame.display.update()
 
