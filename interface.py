@@ -9,7 +9,7 @@ class GUI:
         self.screen = pygame.display.set_mode((1280, 720), RESIZABLE)
         pygame.display.set_caption("Death in Kill Land")
         self.clock = pygame.time.Clock()
-        pygame.display.set_icon(self.screen)
+        self.icon = pygame.image.load('images/bh.png')
         self.font = pygame.font.Font('fonts/Gotham/GothamBook.ttf')
         self.game_active = False
 
@@ -21,8 +21,10 @@ class GUI:
         self.bg_rect = self.bg.get_rect(center=(640, 360))
 
         self.title_surf = self.font.render("Idle Game", True, "gold")
+        self.title_surf = pygame.transform.rotozoom(self.title_surf, 0, 3)
         self.title_rect = self.title_surf.get_rect(center=(640, 180))
-        pygame.draw.rect(self.screen, (26, 29, 37), self.title_rect)
+
+        pygame.display.set_icon(self.icon)
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -35,8 +37,8 @@ class GUI:
 
     def draw_title_screen(self):
         self.screen.blit(self.bg, self.bg_rect)
+        self.title_bg = pygame.draw.rect(self.screen, (26, 29, 37), self.title_rect,0,5)
         self.screen.blit(self.title_surf, self.title_rect)
-        pygame.draw.rect(self.screen, (26, 29, 37), self.title_rect)
 
     def run(self):
         while True:
