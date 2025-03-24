@@ -1,6 +1,8 @@
-areas: {
-    "The Village": {
-        "enemies": [""],
-        "description": "A desolate wasteland filled with undead and twisted creatures."
-    }
-}
+import pygame
+import sys
+
+class Area:
+    def __init__(self,name,lore):
+        self.name = name
+        self.lore = lore
+        self.enemies = []

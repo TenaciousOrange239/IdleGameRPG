@@ -1,7 +1,11 @@
 import os
 import sys
 import pygame
-import time
+import GUI from interface
 
-pygame.init()
+def main():
+    gui = GUI()
+    gui.run()
 
+if __name__ == "__main__":
+    main()
