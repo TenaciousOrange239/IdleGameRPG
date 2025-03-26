@@ -1,7 +1,7 @@
 import pygame
 import sys
 from pygame import RESIZABLE
-import button
+from button.button import Button
 
 class GUI:
     def __init__(self):
@@ -16,29 +16,12 @@ class GUI:
         self.load_assets()
 
     def load_assets(self):
-        self.bg = pygame.image.load('images/swamp.png').convert_alpha()
-        self.bg = pygame.transform.rotozoom(self.bg, 0, 1.2)
-        self.bg_rect = self.bg.get_rect(center=(640, 360))
-
-        self.title_surf = self.font.render("Idle Game", True, "gold")
-        self.title_surf = pygame.transform.rotozoom(self.title_surf, 0, 3)
-        self.title_rect = self.title_surf.get_rect(center=(640, 180))
-
-        pygame.display.set_icon(self.icon)
+        pass
 
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.quit()
-
-    def update(self):
-        if not self.game_active:
-            self.draw_title_screen()
-
-    def draw_title_screen(self):
-        self.screen.blit(self.bg, self.bg_rect)
-        self.title_bg = pygame.draw.rect(self.screen, (26, 29, 37), self.title_rect,0,5)
-        self.screen.blit(self.title_surf, self.title_rect)
 
     def run(self):
         while True:
@@ -51,9 +34,29 @@ class GUI:
         pygame.quit()
         sys.exit()
 
-def main():
-    gui = GUI()
-    gui.run()
+class Menu(GUI):
+    def __init__(self):
+        super().__init__()
 
-if __name__ == "__main__":
-    main()
+    def load_assets(self):
+        self.bg = pygame.image.load('images/swamp.png').convert_alpha()
+        self.bg = pygame.transform.rotozoom(self.bg, 0, 1.2)
+        self.bg_rect = self.bg.get_rect(center=(640, 360))
+
+        self.title_surf = self.font.render("Idle Game", True, "gold")
+        self.title_surf = pygame.transform.rotozoom(self.title_surf, 0, 3)
+        self.title_rect = self.title_surf.get_rect(center=(640, 180))
+
+    def draw_title_screen(self):
+        self.screen.blit(self.bg, self.bg_rect)
+        self.title_bg = pygame.draw.rect(self.screen, (26, 29, 37), self.title_rect, 0, 5)
+        self.screen.blit(self.title_surf, self.title_rect)
+
+        Play_Button = Button(image="images/bh.png",x_pos=640,y_pos=400,txt_input="PLAY",font_name='Comic Sans MS', font_size=100)
+
+    def update(self):
+        if not self.game_active:
+            self.draw_title_screen()
+
+class Play(GUI):
+    pass
