@@ -1,10 +1,6 @@
 import pygame
 import sys
 
-pygame.init()
-screen = pygame.display.set_mode((800,800))
-pygame.display.set_caption("Button")
-
 class Button:
     def __init__(self, image, x_pos, y_pos, txt_input, base_colour, hovering_colour, font_name=None, font_size=50):
         self.image = image
@@ -43,20 +39,26 @@ class Button:
         self.font_size = new_size
         self.font = pygame.font.SysFont(self.font_name, self.font_size)
 
-button_surface = pygame.image.load("bh.png")
-button_surface = pygame.transform.scale(button_surface, (400,150))
+if __name__ == "__main__":
 
-button = Button(button_surface, 400, 300, "Click", "white", "green", "arial", 100)
+    pygame.init()
+    screen = pygame.display.set_mode((800, 800))
+    pygame.display.set_caption("Button")
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            button.checkforInput(pygame.mouse.get_pos())
+    button_surface = pygame.image.load("images/bh.png")
+    button_surface = pygame.transform.scale(button_surface, (400,150))
 
-    button.update()
-    button.changeColour(pygame.mouse.get_pos())
-    pygame.display.update()
+    button = Button(button_surface, 400, 300, "Click", "white", "green", "arial", 100)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                button.checkforInput(pygame.mouse.get_pos())
+
+        button.update()
+        button.changeColour(pygame.mouse.get_pos())
+        pygame.display.update()
 
