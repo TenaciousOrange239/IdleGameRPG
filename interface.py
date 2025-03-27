@@ -36,6 +36,10 @@ class GUI:
         pygame.quit()
         sys.exit()
 
+    def update(self):
+        pass
+
+
 class Menu(GUI):
     def __init__(self):
         super().__init__("arial",100)
@@ -46,12 +50,20 @@ class Menu(GUI):
         self.bg_rect = self.bg.get_rect(center=(640, 360))
 
         self.title_surf = self.font.render("Idle Game", True, "white")
-        self.title_surf = pygame.transform.rotozoom(self.title_surf, 0, 1)
-        self.title_rect = self.title_surf.get_rect(center=(640, 180))
+        self.title_rect = self.title_surf.get_rect(center=(640, 150))
 
-        button_surface = pygame.image.load("images/bh.png")
-        button_surface = pygame.transform.scale(button_surface, (400, 150))
-        self.play_button = Button(button_surface, 640, 400, "PLAY", "white", "green", "arial", 120)
+        button_width, button_height = 230, 100
+        play_button_surface = pygame.Surface((button_width,button_height), pygame.SRCALPHA)
+        pygame.draw.rect(play_button_surface, (50, 50, 70), (0, 0, button_width, button_height-7), border_radius=25)
+        self.play_button = Button(play_button_surface, 640, 350, "PLAY", "white", "green", "gotham", 90)
+
+        options_button_surface = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
+        pygame.draw.rect(options_button_surface, (50, 50, 70), (0, 0, button_width, button_height), border_radius=25)
+        self.options_button = Button(options_button_surface, 640, 470, "OPTIONS", "white", "green", "arial", 55)
+
+        quit_button_surface = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
+        pygame.draw.rect(quit_button_surface, (50, 50, 70), (0, 0, button_width, button_height), border_radius=25)
+        self.quit_button = Button(quit_button_surface, 640, 590, "QUIT", "white", "green", "arial", 70)
 
     def draw_title_screen(self):
         self.screen.blit(self.bg, self.bg_rect)
@@ -61,6 +73,12 @@ class Menu(GUI):
         self.play_button.update(self.screen)
         self.play_button.changeColour(pygame.mouse.get_pos())
 
+        self.options_button.update(self.screen)
+        self.options_button.changeColour(pygame.mouse.get_pos())
+
+        self.quit_button.update(self.screen)
+        self.quit_button.changeColour(pygame.mouse.get_pos())
+
     def update(self):
         if not self.game_active:
             self.draw_title_screen()
@@ -68,9 +86,16 @@ class Menu(GUI):
     def handle_events(self):
         super().handle_events()
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.play_button.checkforInput(pygame.mouse.get_pos()):
-                    self.game_active = True
+            if event.type == pygame.QUIT:
+                self.quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if not self.game_active:  # Only check buttons in menu
+                    if self.play_button.checkforInput(pygame.mouse.get_pos()):
+                        self.game_active = True
+                    elif self.options_button.checkforInput(pygame.mouse.get_pos()):
+                        self.game_active = True  # Or handle options
+                    elif self.quit_button.checkforInput(pygame.mouse.get_pos()):
+                        self.quit()
 
 class Play(GUI):
     def __init__(self):

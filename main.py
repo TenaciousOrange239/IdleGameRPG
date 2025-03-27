@@ -1,6 +1,6 @@
-import os
-import sys
-import pygame
+#import os
+#import sys
+#import pygame
 from interface import Menu
 
 def main():
