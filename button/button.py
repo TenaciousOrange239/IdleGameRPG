@@ -18,7 +18,7 @@ class Button:
         if self.image is None:
             self.image = self.txt
 
-    def update(self):
+    def update(self,screen):
         if self.image is not None:
             screen.blit(self.image, self.rect)
         screen.blit(self.txt, self.txt_rect)
