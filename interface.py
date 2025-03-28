@@ -98,6 +98,7 @@ class Play(GUI):
         pygame.display.set_caption("")
 
         while True:
+            pass
 
 
 
