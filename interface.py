@@ -21,9 +21,7 @@ class GUI:
         pass
 
     def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.quit()
+        pass
 
     def run(self):
         while True:
@@ -59,7 +57,7 @@ class Menu(GUI):
 
         options_button_surface = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
         pygame.draw.rect(options_button_surface, (50, 50, 70), (0, 0, button_width, button_height), border_radius=25)
-        self.options_button = Button(options_button_surface, 640, 470, "OPTIONS", "white", "green", "arial", 55)
+        self.options_button = Button(options_button_surface, 640, 465, "OPTIONS", "white", "green", "arial", 55)
 
         quit_button_surface = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
         pygame.draw.rect(quit_button_surface, (50, 50, 70), (0, 0, button_width, button_height), border_radius=25)
@@ -70,14 +68,9 @@ class Menu(GUI):
         self.title_bg = pygame.draw.rect(self.screen, (26, 29, 37), self.title_rect, 0, 20)
         self.screen.blit(self.title_surf, self.title_rect)
 
-        self.play_button.update(self.screen)
-        self.play_button.changeColour(pygame.mouse.get_pos())
-
-        self.options_button.update(self.screen)
-        self.options_button.changeColour(pygame.mouse.get_pos())
-
-        self.quit_button.update(self.screen)
-        self.quit_button.changeColour(pygame.mouse.get_pos())
+        for button in [self.play_button,self.options_button,self.quit_button]:
+            button.update(self.screen)
+            button.changeColour(pygame.mouse.get_pos())
 
     def update(self):
         if not self.game_active:
@@ -91,12 +84,24 @@ class Menu(GUI):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if not self.game_active:  # Only check buttons in menu
                     if self.play_button.checkforInput(pygame.mouse.get_pos()):
-                        self.game_active = True
-                    elif self.options_button.checkforInput(pygame.mouse.get_pos()):
-                        self.game_active = True  # Or handle options
-                    elif self.quit_button.checkforInput(pygame.mouse.get_pos()):
+                        self.game_active = False
+                    if self.options_button.checkforInput(pygame.mouse.get_pos()):
+                        self.game_active = False  # Or handle options
+                    if self.quit_button.checkforInput(pygame.mouse.get_pos()):
                         self.quit()
 
 class Play(GUI):
     def __init__(self):
-        super().__init__()
+        super().__init__("arial",100)
+
+    def play(self):
+        pygame.display.set_caption("")
+
+        while True:
+
+
+
+
+
+
+
