@@ -45,7 +45,7 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode((800, 800))
     pygame.display.set_caption("Button")
 
-    button_surface = pygame.image.load("images/bh.png")
+    button_surface = pygame.image.load("../resources/images/bh.png")
     button_surface = pygame.transform.scale(button_surface, (400,150))
 
     button = Button(button_surface, 400, 300, "Click", "white", "green", "arial", 100)
