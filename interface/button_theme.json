@@ -1,4 +1,14 @@
 {
+  "defaults":
+  {
+    "colours": {
+      "normal_bg": "SlateGray",
+      "normal_text": "White"
+    },
+    "misc": {
+      "text_font": "arial"
+    }
+  },
   "button":
   {
     "colours":

@@ -1,7 +1,7 @@
 import pygame
 import pygame_gui
 import os
-from interface.config import manager
+from .config import manager
 
 
 

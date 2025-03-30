@@ -32,7 +32,12 @@ class Game:
         self.current_state = self.states["menu"]
 
     def change_state(self, state_name):
+        # Clear all UI elements from the previous state
+        manager.clear_and_reset()
+        # Change to the new state
         self.current_state = self.states[state_name]
+        # Initialize UI elements in the new state
+        self.current_state.load_assets()
 
     def run(self):
         while True:
