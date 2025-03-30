@@ -1,7 +1,7 @@
 import pygame
 import pygame_gui
 import os
-from config import manager
+from interface.config import manager
 
 
 
@@ -58,13 +58,13 @@ class Menu(GameState):
         button_width, button_height = 230, 100
 
         # Play button
-        self.play_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)), text='PLAY',manager=manager)
+        self.play_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((525, 275), (230, 100)), text='PLAY',manager=manager)
 
         # Options button
-        self.options_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)), text='OPTIONS',manager=manager)
+        self.options_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((525, 400), (230, 100)), text='OPTIONS',manager=manager)
 
         # Quit button
-        self.quit_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)), text='QUIT',manager=manager)
+        self.quit_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((525, 525), (230, 100)), text='QUIT',manager=manager)
 
     def handle_events(self):
         for event in pygame.event.get():

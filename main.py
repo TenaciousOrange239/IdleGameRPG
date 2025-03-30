@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from interface.gui import Menu, Play, Options
 from pygame import RESIZABLE
 from interface.config import manager

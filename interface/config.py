@@ -1,4 +1,9 @@
 import pygame_gui
+import os
 
-manager = pygame_gui.UIManager((1280, 720), theme_path="button_theme.json", enable_live_theme_updates=True)
+# Get the absolute path to the theme file
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+theme_path = os.path.join(base_dir, "interface", "button_theme.json")
+
+manager = pygame_gui.UIManager((1280, 720),theme_path=theme_path,enable_live_theme_updates=True)
 manager.preload_fonts([{'name': 'arial', 'point_size': 14, 'style': 'regular'}])
