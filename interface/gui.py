@@ -1,13 +1,12 @@
 import pygame
-import sys
+import pygame_gui
 import os
-from pygame import RESIZABLE
+from config import manager
 
-from IdleGameRPG.interface.button import Button
 
 
 class GameState:
-    def __init__(self, game, font_name="arial", font_size=50):
+    def __init__(self, game,font_name="arial", font_size=50):
         self.game = game
         self.screen = game.screen
         self.clock = game.clock
@@ -23,7 +22,8 @@ class GameState:
         pass
 
     def update(self):
-        pass
+        time_delta = self.clock.tick(60) / 1000.0
+        manager.update(time_delta)
 
     def draw(self):
         pass
@@ -58,47 +58,37 @@ class Menu(GameState):
         button_width, button_height = 230, 100
 
         # Play button
-        play_button_surface = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
-        pygame.draw.rect(play_button_surface, (50, 50, 70), (0, 0, button_width, button_height - 7), border_radius=25)
-        self.play_button = Button(play_button_surface, 640, 350, "PLAY", "white", "green", "gotham", 90)
+        self.play_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)), text='PLAY',manager=manager)
 
         # Options button
-        options_button_surface = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
-        pygame.draw.rect(options_button_surface, (50, 50, 70), (0, 0, button_width, button_height - 7), border_radius=25)
-        self.options_button = Button(options_button_surface, 640, 465, "OPTIONS", "white", "green", "gotham", 65)
+        self.options_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)), text='OPTIONS',manager=manager)
 
         # Quit button
-        quit_button_surface = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
-        pygame.draw.rect(quit_button_surface, (50, 50, 70), (0, 0, button_width, button_height - 7), border_radius=25)
-        self.quit_button = Button(quit_button_surface, 640, 590, "QUIT", "white", "green", "gotham", 90)
+        self.quit_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)), text='QUIT',manager=manager)
 
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.game.quit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if self.play_button.checkforInput(pygame.mouse.get_pos()):
+
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == self.play_button:
                     self.game.change_state("play")
-                elif self.options_button.checkforInput(pygame.mouse.get_pos()):
-                    print("Options button pressed")
-                elif self.quit_button.checkforInput(pygame.mouse.get_pos()):
+                elif event.ui_element == self.options_button:
+                    self.game.change_state("options")
+                elif event.ui_element == self.quit_button:
                     self.game.quit()
 
+            manager.process_events(event)
+
     def update(self):
-        # Update button hover states
-        mouse_pos = pygame.mouse.get_pos()
-        for button in [self.play_button, self.options_button, self.quit_button]:
-            button.changeColour(mouse_pos)
+        super().update()
 
     def draw(self):
         self.screen.blit(self.bg, (0, 0))
         pygame.draw.rect(self.screen, (26, 29, 37), self.title_rect, 0, 25)
         self.screen.blit(self.title_surf, self.title_rect)
-
-        # Draw buttons
-        for button in [self.play_button, self.options_button, self.quit_button]:
-            button.update(self.screen)
-
+        manager.draw_ui(self.screen)
 
 class Play(GameState):
     def __init__(self, game):
@@ -118,62 +108,43 @@ class Play(GameState):
                 if event.key == pygame.K_ESCAPE:
                     self.game.change_state("menu")
 
+            manager.process_events(event)
+
     def update(self):
-        # Game logic updates here
-        pass
+        super().update()
 
     def draw(self):
         self.screen.fill((0, 0, 0))
         text = self.font.render("GAME SCREEN - Press ESC to return to menu", True, (255, 255, 255))
         self.screen.blit(text, (100, 100))
+        manager.draw_ui(self.screen)
         # Additional game rendering here
 
+class Options(GameState):
+    def __init__(self, game):
+        super().__init__(game)
+        self.font = pygame.font.SysFont("arial", 50)
+        self.load_assets()
 
-class Game:
-    def __init__(self):
-        pygame.init()
-        self.screen = pygame.display.set_mode((1280, 720), RESIZABLE)
-        pygame.display.set_caption("Death in Kill Land")
-        self.clock = pygame.time.Clock()
+    def load_assets(self):
+        # Load game assets here
+        pass
 
-        # Load icon with proper path
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        icon_path = os.path.join(base_dir, "resources", "images", "bh.png")
-        try:
-            self.icon = pygame.image.load(icon_path)
-            pygame.display.set_icon(self.icon)
-        except FileNotFoundError:
-            print(f"Could not load icon at {icon_path}")
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.game.quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.game.change_state("menu")
 
-        # Initialize game states
-        self.states = {
-            "menu": Menu(self),
-            "play": Play(self)
-        }
-        self.current_state = self.states["menu"]
+            manager.process_events(event)
 
-    def change_state(self, state_name):
-        """Switch to another game state"""
-        self.current_state = self.states[state_name]
+    def update(self):
+        super().update()
 
-    def run(self):
-        """Main game loop"""
-        while True:
-            # Handle events
-            self.current_state.handle_events()
-
-            # Update game state
-            self.current_state.update()
-
-            # Draw everything
-            self.current_state.draw()
-
-            # Update display
-            pygame.display.flip()
-
-            # Cap the frame rate
-            self.clock.tick(60)
-
-    def quit(self):
-        pygame.quit()
-        sys.exit()
+    def draw(self):
+        self.screen.fill((0, 0, 0))
+        text = self.font.render("Options Screen - Press ESC to return to menu", True, (255, 255, 255))
+        self.screen.blit(text, (100, 100))
+        manager.draw_ui(self.screen)
