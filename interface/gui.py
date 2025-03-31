@@ -4,7 +4,6 @@ import os
 from .config import manager
 
 
-
 class GameState:
     def __init__(self, game,font_name="arial", font_size=50):
         self.game = game
