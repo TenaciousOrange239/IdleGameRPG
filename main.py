@@ -39,13 +39,19 @@ class Game:
         # Initialize UI elements in the new state
         self.current_state.load_assets()
 
+        # Special case for Play state
+        if state_name == "play":
+            self.current_state.create_ui()
+
     def run(self):
         while True:
+            td = self.clock.tick(60) / 1000.0
+
             # Handle events
             self.current_state.handle_events()
 
             # Update game state
-            self.current_state.update()
+            self.current_state.update(td)  # Pass time_delta here
 
             # Draw everything
             self.current_state.draw()
@@ -53,9 +59,7 @@ class Game:
             # Update display
             pygame.display.flip()
 
-            # Cap the frame rate
-            time_delta = self.clock.tick(60)/1000.0
-            manager.update(time_delta)
+            manager.update(td)
 
 
     def quit(self):
