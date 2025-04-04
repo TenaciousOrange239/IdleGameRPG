@@ -123,8 +123,8 @@ class Play(GameState):
         self.bg = pygame.transform.scale(self.bg, (1280, 720))
 
     def create_ui(self):
-        item_list = ["Combat", "Mining", "Smithing", "Hunting", "Woodcutting", "Cooking", "Magic"]
-        select_list_rect = pygame.Rect(0, 0, 200, 720)
+        item_list = ["Combat", "", "Mining", "Smithing", "Hunting", "Woodcutting", "Cooking", "Magic"]
+        select_list_rect = pygame.Rect(-1, 101, 200, 620)
         self.selection_list = pygame_gui.elements.UISelectionList(
             relative_rect=select_list_rect,
             item_list=item_list,
@@ -221,7 +221,7 @@ class Mining(Play):
         button_height = 120
         grid_cols = 3
         padding = 30
-        start_x = (self.game.screen.get_width() - (grid_cols * button_width + (grid_cols - 1) * padding)) // 2
+        start_x = ((self.game.screen.get_width() - (grid_cols * button_width + (grid_cols - 1) * padding)) // 2 + 95)
         start_y = 180
 
         # Create a button for each ore in a grid layout
