@@ -8,10 +8,15 @@ pygame.init()
 
 # Get the absolute path to the theme file
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-theme_path = os.path.join(base_dir, "interface", "button_theme.json")
+button_theme_path = os.path.join(base_dir, "interface", "button_theme.json")
+selection_list_theme_path = os.path.join(base_dir, "interface", "selection_list_theme.json")
 
 # Create a simple UI manager without a theme initially
-manager = pygame_gui.UIManager((1280, 720))
+button_manager = pygame_gui.UIManager((1280, 720),"button_theme.json")
+selection_list_manager = pygame_gui.UIManager((1280,720),"selection_list_theme.json")
+panel_manager = pygame_gui.UIManager((1280,720), "panel_theme.json")
+ore_button_manager = pygame_gui.UIManager((1280, 720), "ore_button_theme.json")
+
 
 # Override the default font with a system font
 available_fonts = pygame.font.get_fonts()
@@ -26,12 +31,13 @@ else:
 
 # Now try to load the theme
 try:
-    manager.get_theme().load_theme(theme_path)
+    button_manager.get_theme().load_theme(button_theme_path)
+    selection_list_manager.get_theme().load_theme(selection_list_theme_path)
 except Exception as e:
-    print(f"Warning: Could not load theme: {e}")
+    print(f"Warning: Could not load themes: {e}")
     print("Continuing with default theme")
 
 # Preload the font we know exists
-manager.preload_fonts([{'name': default_font, 'point_size': 14, 'style': 'regular'},
+button_manager.preload_fonts([{'name': default_font, 'point_size': 14, 'style': 'regular'},
                        {'name': default_font, 'point_size': 50, 'style': 'regular'},
                        {'name': default_font, 'point_size': 100, 'style': 'regular'}])

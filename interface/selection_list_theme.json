@@ -1,0 +1,11 @@
+{
+  "selection_list": {
+    "colours": {
+      "dark_bg": "#21282D",
+      "normal_border": "#999999"
+    },
+    "misc": {
+      "list_item_height": "70"
+    }
+  }
+}

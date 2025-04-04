@@ -1,0 +1,22 @@
+{
+  "button":
+  {
+    "colours":
+    {
+      "normal_border": "#303030",
+      "normal_bg": "#1a2130",
+      "normal_text": "White",
+      "hovered_border": "#505050",
+      "hovered_bg": "#1a2130",
+      "hovered_text": "#a0f0a0"
+    },
+    "misc":
+    {
+      "shape": "rounded_rectangle",
+      "shape_corner_radius": "5",
+      "border_width": "2",
+      "shadow_width": "4",
+      "tool_tip_delay": "1.0"
+    }
+  }
+}
