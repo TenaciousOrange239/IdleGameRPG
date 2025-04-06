@@ -79,9 +79,7 @@ class Menu(GameState):
         # Options button
         self.options_button = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect((525, start_y + 2 * (button_height + button_spacing)),
-                                      (button_width, button_height)),
-            text='OPTIONS',
-            manager=button_manager
+                                      (button_width, button_height)), text='OPTIONS', manager=button_manager
         )
 
         # Save/Load button
@@ -106,6 +104,8 @@ class Menu(GameState):
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == self.play_button:
                 self.game.change_state("play")
+            elif event.ui_element == self.saveload_button:
+                self.game.change_state("saveload")
             elif event.ui_element == self.options_button:
                 self.game.change_state("options")
             elif event.ui_element == self.quit_button:
@@ -592,17 +592,28 @@ class Cooking(Play):
 
 class SaveLoadMenu(GameState):
     def __init__(self, game):
+        # Define class attributes before calling super().__init__
+        self.save_slots = 3  # Number of save slots
+        self.buttons = []
+        self.back_button = None
+        self.notification = None
+        self.notification_timer = 0
+        self.notification_duration = 2000  # Display notification for 2 seconds
+
+        # Call the parent constructor
         super().__init__(game)
+
+        # Set these after super().__init__
         self.font = pygame.font.SysFont("arial", 40)
         self.small_font = pygame.font.SysFont("arial", 20)
-        self.buttons = []
-        self.save_slots = 3  # Number of save slots
 
     def load_assets(self):
-        # Load background or other assets
-        pass
+        # Don't create the UI here - just load background or other assets
+        pass  # We'll create UI when needed, not at initialization
 
     def create_ui(self):
+        # Create UI elements when specifically requested
+        # This avoids creating UI elements during initialization
         # Clear existing UI elements
         button_manager.clear_and_reset()
 
@@ -637,29 +648,65 @@ class SaveLoadMenu(GameState):
 
             self.buttons.append((i, save_btn, load_btn))
 
-    def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
+    def reset(self):
+        self.back_button = None
+        self.buttons = []
+        # Reset any other UI-related attributes
 
-            # Check back button
-            if self.back_button.checkForInput(mouse_pos):
+    def handle_event(self, event):
+        # First check if it's a pygame_gui event
+        if event.type == pygame_gui.UI_BUTTON_PRESSED:
+            if event.ui_element == self.back_button:
+                self.reset()  # Reset UI state
                 self.game.change_state("menu")
                 return
 
-            # Check save/load buttons
+            # Process other UI button events
             for slot, save_btn, load_btn in self.buttons:
-                if save_btn.checkForInput(mouse_pos):
-                    self.game.save_game(slot)
+                if event.ui_element == save_btn:
+                    if self.game.save_game(slot):
+                        self.show_notification(f"Game saved to Slot {slot}!", (100, 255, 100))
+                    else:
+                        self.show_notification("Failed to save game!", (255, 100, 100))
                     return
 
-                if load_btn.checkForInput(mouse_pos):
+                if event.ui_element == load_btn:
                     if self.game.load_game(slot):
+                        self.show_notification(f"Game loaded from Slot {slot}!", (100, 255, 100))
                         # Reset UI for all activities after loading
                         for state_name, state in self.game.states.items():
                             if hasattr(state, 'ui_created'):
                                 state.ui_created = False
                         self.game.change_state("menu")
+                    else:
+                        self.show_notification("Failed to load game!", (255, 100, 100))
                     return
+
+        # Handle regular pygame events
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.game.change_state("menu")
+
+    def show_notification(self, message, color):
+        """Show a notification message"""
+        self.notification = {
+            "message": message,
+            "color": color,
+            "timer": pygame.time.get_ticks()
+        }
+        self.notification_timer = pygame.time.get_ticks()
+
+    def update(self, time_delta):
+        """Update the SaveLoadMenu state"""
+        current_time = pygame.time.get_ticks()
+
+        # Clear notification after duration
+        if self.notification and current_time - self.notification_timer > self.notification_duration:
+            self.notification = None
+
+        # Update UI manager
+        time_delta = self.clock.get_time() / 1000.0
+        button_manager.update(time_delta)
 
     def draw(self):
         # Draw background
@@ -670,40 +717,60 @@ class SaveLoadMenu(GameState):
         title_rect = title_text.get_rect(center=(640, 50))
         self.screen.blit(title_text, title_rect)
 
-        # Draw back button
-        self.back_button.update(pygame.mouse.get_pos())
-        self.back_button.draw()
+        # Draw back button - add check to avoid AttributeError
+        if not self.back_button:
+            # If back_button doesn't exist yet, create the UI
+            self.create_ui()
 
-        # Draw save/load buttons and slot info
-        for slot, save_btn, load_btn in self.buttons:
-            save_btn.update(pygame.mouse.get_pos())
-            save_btn.draw()
-
-            load_btn.update(pygame.mouse.get_pos())
-            load_btn.draw()
-
+        # Draw save slot info
+        for slot, _, _ in self.buttons:
             # Check if save exists and show info
             save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saves")
             save_path = os.path.join(save_dir, f"save_slot_{slot}.json")
 
+            # Draw save slot status
+            slot_y = 150 + ((slot - 1) * 100)
+            slot_info_x = 200
+
             info_text = "Empty Slot"
+            info_color = (150, 150, 150)
+
             if os.path.exists(save_path):
                 try:
                     with open(save_path, 'r') as save_file:
                         save_data = json.load(save_file)
                     timestamp = save_data.get("timestamp", "Unknown date")
-                    # Format the timestamp for display
-                    if timestamp != "Unknown date":
-                        timestamp = datetime.datetime.fromisoformat(timestamp).strftime("%Y-%m-%d %H:%M")
-                    info_text = f"Saved: {timestamp}"
-                except:
-                    info_text = "Corrupted Save"
+                    # Format the timestamp nicely if it's ISO format
+                    try:
+                        dt = datetime.datetime.fromisoformat(timestamp)
+                        formatted_time = dt.strftime("%Y-%m-%d %H:%M")
+                        info_text = f"Saved: {formatted_time}"
+                    except (ValueError, TypeError):
+                        info_text = f"Saved: {timestamp}"
+                    info_color = (255, 255, 255)
+                except Exception as e:
+                    info_text = "Error reading save"
+                    info_color = (255, 100, 100)
 
-            # Show save info
-            info_surf = self.small_font.render(info_text, True, (200, 200, 200))
-            self.screen.blit(info_surf, (450, 220 + ((slot - 1) * 100)))
+            # Render slot info
+            info_surf = self.small_font.render(info_text, True, info_color)
+            self.screen.blit(info_surf, (slot_info_x, slot_y + 25))
 
+        # Draw notification if active
+        if self.notification:
+            notification_surf = self.font.render(
+                self.notification["message"], True, self.notification["color"])
+            notification_rect = notification_surf.get_rect(center=(640, 650))
 
+            # Draw a background for the notification
+            bg_rect = notification_rect.inflate(20, 10)
+            pygame.draw.rect(self.screen, (30, 30, 40), bg_rect, border_radius=5)
+            pygame.draw.rect(self.screen, (80, 80, 100), bg_rect, width=2, border_radius=5)
+
+            self.screen.blit(notification_surf, notification_rect)
+
+        # Draw the UI manager elements
+        button_manager.draw_ui(self.screen)
 
 
 class Options(GameState):

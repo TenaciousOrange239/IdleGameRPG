@@ -1,0 +1,73 @@
+{
+  "player_data": {
+    "skills": {
+      "mining": {
+        "level": 1,
+        "xp": 0,
+        "max_xp": 100
+      },
+      "woodcutting": {
+        "level": 1,
+        "xp": 0,
+        "max_xp": 100
+      },
+      "cooking": {
+        "level": 1,
+        "xp": 0,
+        "max_xp": 100
+      },
+      "smithing": {
+        "level": 1,
+        "xp": 0,
+        "max_xp": 100
+      },
+      "magic": {
+        "level": 1,
+        "xp": 0,
+        "max_xp": 100
+      },
+      "hunting": {
+        "level": 1,
+        "xp": 0,
+        "max_xp": 100
+      },
+      "combat": {
+        "level": 1,
+        "xp": 0,
+        "max_xp": 100
+      }
+    },
+    "inventory": {
+      "ores": {},
+      "wood": {},
+      "food": {},
+      "equipment": {}
+    },
+    "game_time": 0,
+    "last_save": null
+  },
+  "activity_data": {
+    "mining": {
+      "ores_mined": {
+        "Copper": 0,
+        "Iron": 0,
+        "Steel": 0,
+        "Tungsten": 0,
+        "Titanium": 0,
+        "Goatium": 0,
+        "Infinium": 0
+      }
+    },
+    "woodcutting": {
+      "wood_chopped": {
+        "Oak": 0,
+        "Dark Oak": 0,
+        "Darkest Oak": 0,
+        "Darker Oak (how???)": 0,
+        "Strong Wood": 0,
+        "Best Wood In The Game": 0
+      }
+    }
+  },
+  "timestamp": "2025-04-06T19:57:34.124088"
+}

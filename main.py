@@ -77,6 +77,7 @@ class Game:
             "options": Options(self),
             "saveload": SaveLoadMenu(self),
 
+
             "inventory": Inventory(self),
             "combat": Combat(self),
             "mining": Mining(self),
@@ -125,7 +126,7 @@ class Game:
 
         # Check if the save file exists
         if not os.path.exists(save_path):
-            print(f"Save file {save_path} does not exist.")
+            print(f"No save file found at {save_path}")
             return False
 
         # Load the data from the JSON file
@@ -136,7 +137,6 @@ class Game:
             # Update the game state with the loaded data
             self.player_data = save_data["player_data"]
             self.activity_data = save_data["activity_data"]
-
             print(f"Game loaded successfully from {save_path}")
             return True
         except Exception as e:
