@@ -1,9 +1,11 @@
 import pygame
 import os
+import json
+import datetime
 import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from interface.gui import Menu, Play, Options, Combat, Mining, Smithing, Hunting, Woodcutting, Cooking, Magic
+from interface.gui import Menu, Play, Options, SaveLoadMenu, Inventory, Combat, Mining, Smithing, Hunting, Woodcutting, Cooking
 from pygame import RESIZABLE
 from interface.config import button_manager, selection_list_manager, panel_manager
 
@@ -14,6 +16,26 @@ class Game:
         self.screen = pygame.display.set_mode((1280, 720), RESIZABLE)
         pygame.display.set_caption("Death in Kill Land")
         self.clock = pygame.time.Clock()
+
+        self.player_data = {
+            "skills": {
+                "mining": {"level": 1, "xp": 0, "max_xp": 100},
+                "woodcutting": {"level": 1, "xp": 0, "max_xp": 100},
+                "cooking": {"level": 1, "xp": 0, "max_xp": 100},
+                "smithing": {"level": 1, "xp": 0, "max_xp": 100},
+                "magic": {"level": 1, "xp": 0, "max_xp": 100},
+                "hunting": {"level": 1, "xp": 0, "max_xp": 100},
+                "combat": {"level": 1, "xp": 0, "max_xp": 100}
+            },
+            "inventory": {
+                "ores": {},
+                "wood": {},
+                "food": {},
+                "equipment": {}
+            },
+            "game_time": 0,
+            "last_save": None
+        }
 
         self.activity_data = {
             "mining": {
@@ -53,18 +75,73 @@ class Game:
             "menu": Menu(self),
             "play": Play(self),
             "options": Options(self),
+            "saveload": SaveLoadMenu(self),
 
+            "inventory": Inventory(self),
             "combat": Combat(self),
             "mining": Mining(self),
             "smithing": Smithing(self),
             "hunting": Hunting(self),
             "woodcutting": Woodcutting(self),
-            "cooking": Cooking(self),
-            "magic": Magic(self)
+            "cooking": Cooking(self)
         }
 
         self.current_state = self.states["menu"]
         self.current_activity = self.states["mining"]
+
+    def save_game(self, save_slot=1):
+        """Save the current game state to a file."""
+        # Create a save data dictionary with all relevant data
+        save_data = {
+            "player_data": self.player_data,
+            "activity_data": self.activity_data,
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+
+        # Make sure the saves directory exists
+        save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saves")
+        os.makedirs(save_dir, exist_ok=True)
+
+        # Create the save file path
+        save_path = os.path.join(save_dir, f"save_slot_{save_slot}.json")
+
+        # Save the data to a JSON file
+        try:
+            with open(save_path, 'w') as save_file:
+                json.dump(save_data, save_file, indent=2)
+
+            self.player_data["last_save"] = datetime.datetime.now().isoformat()
+            print(f"Game saved successfully to {save_path}")
+            return True
+        except Exception as e:
+            print(f"Error saving game: {e}")
+            return False
+
+    def load_game(self, save_slot=1):
+        """Load a saved game from a file."""
+        # Create the save file path
+        save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saves")
+        save_path = os.path.join(save_dir, f"save_slot_{save_slot}.json")
+
+        # Check if the save file exists
+        if not os.path.exists(save_path):
+            print(f"Save file {save_path} does not exist.")
+            return False
+
+        # Load the data from the JSON file
+        try:
+            with open(save_path, 'r') as save_file:
+                save_data = json.load(save_file)
+
+            # Update the game state with the loaded data
+            self.player_data = save_data["player_data"]
+            self.activity_data = save_data["activity_data"]
+
+            print(f"Game loaded successfully from {save_path}")
+            return True
+        except Exception as e:
+            print(f"Error loading game: {e}")
+            return False
 
     def change_state(self, state_name):
         button_manager.clear_and_reset()

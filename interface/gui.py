@@ -1,7 +1,8 @@
 import os
-
+import json
 import pygame
 import pygame_gui
+import datetime
 
 from .config import button_manager, selection_list_manager, panel_manager
 
@@ -60,20 +61,44 @@ class Menu(GameState):
         self.bg = pygame.transform.scale(self.bg, (1280, 720))
 
         self.title_surf = self.font.render("Level Up Game", True, "white")
-        self.title_rect = self.title_surf.get_rect(center=(640, 150))
+        self.title_rect = self.title_surf.get_rect(center=(640, 100))
+
+        # Button size and spacing
+        button_width = 230
+        button_height = 100
+        button_spacing = 25
+        start_y = 200
 
         # Play button
-        self.play_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((525, 275), (230, 100)), text='PLAY',
-                                                        manager=button_manager)
+        self.play_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((525, start_y), (button_width, button_height)),
+            text='PLAY',
+            manager=button_manager
+        )
 
         # Options button
-        self.options_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((525, 400), (230, 100)),
-                                                           text='OPTIONS', manager=button_manager)
+        self.options_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((525, start_y + 2 * (button_height + button_spacing)),
+                                      (button_width, button_height)),
+            text='OPTIONS',
+            manager=button_manager
+        )
+
+        # Save/Load button
+        self.saveload_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((525, start_y + button_height + button_spacing), (button_width, button_height)),
+            text='SAVE/LOAD',
+            manager=button_manager
+        )
 
         # Quit button
-        self.quit_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((525, 525), (230, 100)), text='QUIT',
-                                                        manager=button_manager)
-
+        self.quit_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((525, start_y + 3 * (button_height + button_spacing)),
+                                      (button_width, button_height)),
+            text='QUIT',
+            manager=button_manager
+        )
+        
     def handle_event(self, event):
         if event.type == pygame.QUIT:
             self.game.quit()
@@ -97,7 +122,6 @@ class Menu(GameState):
 
         button_manager.draw_ui(self.screen)
         selection_list_manager.draw_ui(self.screen)
-
 
 class Play(GameState):
     def __init__(self, game):
@@ -123,7 +147,7 @@ class Play(GameState):
         self.bg = pygame.transform.scale(self.bg, (1280, 720))
 
     def create_ui(self):
-        item_list = ["Combat", "", "Mining", "Smithing", "Hunting", "Woodcutting", "Cooking", "Magic"]
+        item_list = ["Inventory", "", "Combat", "Mining", "Smithing", "Hunting", "Woodcutting", "Cooking"]
         select_list_rect = pygame.Rect(-1, 101, 200, 620)
         self.selection_list = pygame_gui.elements.UISelectionList(
             relative_rect=select_list_rect,
@@ -131,7 +155,7 @@ class Play(GameState):
             manager=selection_list_manager,
             object_id=pygame_gui.core.ObjectID(class_id="@button", object_id="#unique_button")
         )
-
+        
         self.ui_created = True
 
     def handle_event(self, event):
@@ -159,8 +183,7 @@ class Play(GameState):
                     "Smithing": "smithing",
                     "Hunting": "hunting",
                     "Woodcutting": "woodcutting",
-                    "Cooking": "cooking",
-                    "Magic": "magic"
+                    "Cooking": "cooking"
                 }
 
                 selected_activity = activity_map.get(event.text)
@@ -360,7 +383,9 @@ class Mining(Play):
         self.game.screen.blit(instructions, (20, 50))
 
 
-
+class Inventory(Play):
+    def __init__(self, game):
+        super().__init__(game)
 
 
 class Combat(Play):
@@ -381,6 +406,183 @@ class Hunting(Play):
 class Woodcutting(Play):
     def __init__(self, game):
         super().__init__(game)
+        self.wc_button_1 = None
+        self.wood_buttons = []
+        self.wood_button_manager = pygame_gui.UIManager((1280, 720), "wood_button_theme.json")
+        self.chopping_in_progress = {}  # Track which ores are being mined
+        self.chopping_progress = {}  # Track progress for each ore (0-100%)
+        self.placeholder_icon = None  # Will hold the placeholder ore icon
+
+    def create_ui(self):
+        super().create_ui()
+
+        # Properly clear any existing ore buttons - don't try to kill dictionaries
+        self.wood_buttons = []  # Simply reset the list instead of trying to kill each element
+
+        # Reset mining progress
+        self.chopping_in_progress = {}
+        self.chopping_progress = {}
+
+        # Load placeholder icon (or create a simple surface if no image available)
+        try:
+            self.placeholder_icon = pygame.Surface((32, 32))
+            self.placeholder_icon.fill((100, 100, 100))  # Gray background
+            pygame.draw.circle(self.placeholder_icon, (200, 200, 200), (16, 16), 12)  # Light gray circle
+            pygame.draw.circle(self.placeholder_icon, (150, 150, 150), (16, 16), 8)  # Medium gray inner circle
+        except Exception as e:
+            print(f"Could not create placeholder icon: {e}")
+
+        # Get the ores from the game's activity_data
+        wood_data = self.game.activity_data.get("woodcutting", {}).get("wood_chopped", {})
+        wood_names = list(wood_data.keys())
+
+        # If no ores found, use an empty list to avoid errors
+        if not wood_names:
+            print("Warning: No ores found in activity_data")
+            return
+
+        # Button size and grid parameters - larger to accommodate new elements
+        button_width = 280
+        button_height = 120
+        grid_cols = 3
+        padding = 30
+        start_x = ((self.game.screen.get_width() - (grid_cols * button_width + (grid_cols - 1) * padding)) // 2 + 95)
+        start_y = 180
+
+        # Create a button for each ore in a grid layout
+        for i, wood_name in enumerate(wood_names):
+            row = i // grid_cols
+            col = i % grid_cols
+
+            x_pos = start_x + col * (button_width + padding)
+            y_pos = start_y + row * (button_height + padding)
+
+            # Create a custom button but don't use pygame_gui's button for this
+            # Instead, track the rect and we'll draw our own custom button
+            button_rect = pygame.Rect(x_pos, y_pos, button_width, button_height)
+
+            # Initialize progress for this ore
+            self.chopping_progress[wood_name] = 0
+            self.chopping_in_progress[wood_name] = False
+
+            # Store button info
+            self.wood_buttons.append({
+                'rect': button_rect,
+                'name': wood_name,
+                'hovered': False,
+                'xp_reward': 5 + i * 2  # Example XP reward based on ore index (can be customized)
+            })
+
+    def handle_event(self, event):
+        super().handle_event(event)
+
+        self.wood_button_manager.process_events(event)
+
+        # Handle mouse clicks
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left click
+            mouse_pos = pygame.mouse.get_pos()
+
+            for button in self.wood_buttons:
+                if button['rect'].collidepoint(mouse_pos):
+                    wood_name = button['name']
+                    # Toggle mining status
+                    self.chopping_in_progress[wood_name] = not self.chopping_in_progress[wood_name]
+
+                    if self.chopping_in_progress[wood_name]:
+                        print(f"Started mining {wood_name}...")
+                        # Reset progress when starting
+                        self.chopping_progress[wood_name] = 0
+                    else:
+                        print(f"Stopped mining {wood_name}.")
+
+    def update(self, time_delta):
+        super().update(time_delta)
+        self.wood_button_manager.update(time_delta)
+
+        # Update mining progress for active ores
+        for ore_name, is_mining in self.chopping_in_progress.items():
+            if is_mining:
+                # Increase progress by a small amount
+                self.chopping_progress[ore_name] += 25 * time_delta  # Adjust speed as needed
+
+                # If completed a mining cycle
+                if self.chopping_progress[ore_name] >= 100:
+                    # Reset progress and process the mined ore
+                    self.chopping_progress[ore_name] = 0
+                    print(f"Successfully mined {ore_name}!")
+                    # Here you would typically add the ore to inventory
+                    # And award XP (but we're just showing the UI for now)
+
+        # Apply hover effects for buttons
+        mouse_pos = pygame.mouse.get_pos()
+        for button in self.wood_buttons:
+            button['hovered'] = button['rect'].collidepoint(mouse_pos)
+
+    def draw(self):
+        super().draw()
+
+        # Title
+        font_large = pygame.font.SysFont(self.font_name, 36)
+        title = font_large.render("Mining", True, (255, 255, 255))
+        self.game.screen.blit(title, ((self.game.screen.get_width() - title.get_width()) // 2, 100))
+
+        # Draw custom buttons with progress bars
+        font = pygame.font.SysFont(self.font_name, 22)
+        small_font = pygame.font.SysFont(self.font_name, 16)
+
+        for button in self.wood_buttons:
+            rect = button['rect']
+            name = button['name']
+            xp_reward = button['xp_reward']
+            is_mining = self.chopping_in_progress.get(name, False)
+            progress = self.chopping_progress.get(name, 0)
+
+            # Button background
+            button_color = (70, 70, 80) if not button['hovered'] else (80, 80, 90)
+            if is_mining:
+                button_color = (80, 100, 80)  # Green tint when mining
+
+            # Draw button with rounded corners
+            pygame.draw.rect(self.game.screen, button_color, rect, border_radius=10)
+
+            # Add a subtle border
+            border_color = (100, 100, 110)
+            pygame.draw.rect(self.game.screen, border_color, rect, width=2, border_radius=10)
+
+            # Placeholder icon
+            if self.placeholder_icon:
+                icon_rect = pygame.Rect(rect.x + 15, rect.y + (rect.height - 32) // 2, 32, 32)
+                self.game.screen.blit(self.placeholder_icon, icon_rect)
+
+            # Ore name
+            name_text = font.render(name, True, (230, 230, 230))
+            self.game.screen.blit(name_text, (rect.x + 60, rect.y + 20))
+
+            # XP reward
+            xp_text = small_font.render(f"+{xp_reward} XP", True, (180, 220, 180))
+            self.game.screen.blit(xp_text, (rect.x + 60, rect.y + 50))
+
+            # Status text
+            status_text = small_font.render("Click to " + ("stop" if is_mining else "start") + " mining",
+                                            True, (200, 200, 200))
+            self.game.screen.blit(status_text, (rect.x + 60, rect.y + 75))
+
+            # Progress bar background
+            progress_rect = pygame.Rect(rect.x + 10, rect.y + rect.height - 20, rect.width - 20, 10)
+            pygame.draw.rect(self.game.screen, (50, 50, 50), progress_rect, border_radius=5)
+
+            # Progress bar fill
+            if progress > 0:
+                fill_width = int((progress_rect.width * min(progress, 100)) / 100)
+                fill_rect = pygame.Rect(progress_rect.x, progress_rect.y, fill_width, progress_rect.height)
+                progress_color = (100, 200, 100) if is_mining else (150, 150, 200)
+                pygame.draw.rect(self.game.screen, progress_color, fill_rect, border_radius=5)
+
+        # Instructions
+        instruction_font = pygame.font.SysFont(self.font_name, 20)
+        instructions = instruction_font.render("Click on an ore to start mining. Click again to stop.",
+                                               True, (200, 200, 200))
+        self.game.screen.blit(instructions, (20, 50))
 
 
 class Cooking(Play):
@@ -388,9 +590,120 @@ class Cooking(Play):
         super().__init__(game)
 
 
-class Magic(Play):
+class SaveLoadMenu(GameState):
     def __init__(self, game):
         super().__init__(game)
+        self.font = pygame.font.SysFont("arial", 40)
+        self.small_font = pygame.font.SysFont("arial", 20)
+        self.buttons = []
+        self.save_slots = 3  # Number of save slots
+
+    def load_assets(self):
+        # Load background or other assets
+        pass
+
+    def create_ui(self):
+        # Clear existing UI elements
+        button_manager.clear_and_reset()
+
+        # Create back button
+        self.back_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect(10, 10, 100, 50),
+            text="Back",
+            manager=button_manager,
+            object_id="#back_button"
+        )
+
+        # Create save slot buttons
+        button_y = 150
+        button_spacing = 100
+
+        for i in range(1, self.save_slots + 1):
+            # Save button
+            save_btn = pygame_gui.elements.UIButton(
+                relative_rect=pygame.Rect(400, button_y + ((i - 1) * button_spacing), 200, 70),
+                text=f"Save Slot {i}",
+                manager=button_manager,
+                object_id=f"#save_slot_{i}"
+            )
+
+            # Load button
+            load_btn = pygame_gui.elements.UIButton(
+                relative_rect=pygame.Rect(650, button_y + ((i - 1) * button_spacing), 200, 70),
+                text=f"Load Slot {i}",
+                manager=button_manager,
+                object_id=f"#load_slot_{i}"
+            )
+
+            self.buttons.append((i, save_btn, load_btn))
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+
+            # Check back button
+            if self.back_button.checkForInput(mouse_pos):
+                self.game.change_state("menu")
+                return
+
+            # Check save/load buttons
+            for slot, save_btn, load_btn in self.buttons:
+                if save_btn.checkForInput(mouse_pos):
+                    self.game.save_game(slot)
+                    return
+
+                if load_btn.checkForInput(mouse_pos):
+                    if self.game.load_game(slot):
+                        # Reset UI for all activities after loading
+                        for state_name, state in self.game.states.items():
+                            if hasattr(state, 'ui_created'):
+                                state.ui_created = False
+                        self.game.change_state("menu")
+                    return
+
+    def draw(self):
+        # Draw background
+        self.screen.fill((50, 50, 70))  # Dark blue-gray background
+
+        # Draw title
+        title_text = self.font.render("Save / Load Game", True, (255, 255, 255))
+        title_rect = title_text.get_rect(center=(640, 50))
+        self.screen.blit(title_text, title_rect)
+
+        # Draw back button
+        self.back_button.update(pygame.mouse.get_pos())
+        self.back_button.draw()
+
+        # Draw save/load buttons and slot info
+        for slot, save_btn, load_btn in self.buttons:
+            save_btn.update(pygame.mouse.get_pos())
+            save_btn.draw()
+
+            load_btn.update(pygame.mouse.get_pos())
+            load_btn.draw()
+
+            # Check if save exists and show info
+            save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saves")
+            save_path = os.path.join(save_dir, f"save_slot_{slot}.json")
+
+            info_text = "Empty Slot"
+            if os.path.exists(save_path):
+                try:
+                    with open(save_path, 'r') as save_file:
+                        save_data = json.load(save_file)
+                    timestamp = save_data.get("timestamp", "Unknown date")
+                    # Format the timestamp for display
+                    if timestamp != "Unknown date":
+                        timestamp = datetime.datetime.fromisoformat(timestamp).strftime("%Y-%m-%d %H:%M")
+                    info_text = f"Saved: {timestamp}"
+                except:
+                    info_text = "Corrupted Save"
+
+            # Show save info
+            info_surf = self.small_font.render(info_text, True, (200, 200, 200))
+            self.screen.blit(info_surf, (450, 220 + ((slot - 1) * 100)))
+
+
 
 
 class Options(GameState):
