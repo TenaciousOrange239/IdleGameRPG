@@ -5,17 +5,22 @@ import datetime
 import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from interface.gui import Menu, Play, Options, SaveLoadMenu, Inventory, Combat, Mining, Smithing, Hunting, Woodcutting, Cooking
-from pygame import RESIZABLE
+from interface.gui import Menu, Play, SaveLoadMenu, Inventory, Combat, Mining, Smithing, Woodcutting
 from interface.config import button_manager, selection_list_manager, panel_manager
 
 
 class Game:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((1280, 720), RESIZABLE)
+        self.screen = pygame.display.set_mode((1280, 720))
         pygame.display.set_caption("Death in Kill Land")
         self.clock = pygame.time.Clock()
+        self.running = True
+        self.fps = 60
+        self.show_fps = False  # Toggle for showing FPS counter
+
+        # pygame.mixer.music.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources", "audio", "tang.mp3"))
+        # pygame.mixer.music.play(-1)
 
         self.player_data = {
             "skills": {
@@ -63,32 +68,56 @@ class Game:
 
         # Load icon with proper path
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        icon_path = os.path.join(base_dir, "resources", "images", "bh.png")
+        icon_path = os.path.join(base_dir, "resources", "images", "lake.png")
         try:
             self.icon = pygame.image.load(icon_path)
             pygame.display.set_icon(self.icon)
         except FileNotFoundError:
             print(f"Could not load icon at {icon_path}")
 
+        # Initialize font for FPS display
+        self.font = pygame.font.SysFont(None, 24)
+
         # Initialize game states
         self.states = {
             "menu": Menu(self),
             "play": Play(self),
-            "options": Options(self),
             "saveload": SaveLoadMenu(self),
-
 
             "inventory": Inventory(self),
             "combat": Combat(self),
             "mining": Mining(self),
             "smithing": Smithing(self),
-            "hunting": Hunting(self),
-            "woodcutting": Woodcutting(self),
-            "cooking": Cooking(self)
+            "woodcutting": Woodcutting(self)
         }
 
         self.current_state = self.states["menu"]
         self.current_activity = self.states["mining"]
+
+    def calculate_xp_for_level(self, level):
+        # Simple exponential formula for level progression
+        # Level 1 = 0 XP
+        # Level 2 = 83 XP
+        # Levels get progressively harder
+        return int(sum(int(level * (1 + level * 0.1)) for level in range(1, level)))
+
+    def add_skill_xp(self, skill, amount):
+        if skill not in self.player_data["skills"]:
+            return False
+
+        # Add XP
+        self.player_data["skills"][skill]["xp"] += amount
+        current_level = self.player_data["skills"][skill]["level"]
+
+        # Check if level up occurred
+        next_level = current_level + 1
+        xp_needed = self.calculate_xp_for_level(next_level)
+
+        if self.player_data["skills"][skill]["xp"] >= xp_needed:
+            self.player_data["skills"][skill]["level"] = next_level
+            return True  # Indicates a level up
+
+        return False
 
     def save_game(self, save_slot=1):
         """Save the current game state to a file."""
@@ -154,58 +183,87 @@ class Game:
         if state_name == "play":
             self.current_state.reset()
 
-    def change_activity(self, activity_name):
-        # Clear current activity UI but preserve selection list
-        panel_manager.clear_and_reset()
+    def change_activity(self, new_activity):
+        # Clear all UI before changing
         button_manager.clear_and_reset()
+        selection_list_manager.clear_and_reset()
+        panel_manager.clear_and_reset()
 
-        # Switch to the new activity
-        self.current_activity = self.states[activity_name]  # Update current_activity
-        self.current_state = self.states[activity_name]  # Also update current_state
-
-        # Load assets and create UI for the new activity
-        self.current_activity.load_assets()
-        self.current_activity.create_ui()
+        # Then proceed with the activity change
+        if hasattr(self, 'current_activity'):
+            self.current_activity = new_activity
+        else:
+            self.current_activity_state = new_activity
+        self.states[new_activity].reset()
+        self.states[new_activity].create_ui()
 
     def run(self):
-        while True:
-            td = self.clock.tick(60) / 1000.0
+        self.running = True
+        try:
+            while self.running:
+                # Get time delta - limit to reasonable values in case of lag
+                time_delta = self.clock.tick(60) / 1000
 
-            # Handle events
-            events = pygame.event.get()
-            for event in events:
-                if event.type == pygame.QUIT:
-                    self.quit()
+                # Process events
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.running = False
 
-                button_manager.process_events(event)
-                selection_list_manager.process_events(event)
-                panel_manager.process_events(event)
+                    # Add ESC key to exit the game
+                    if event.type == pygame.KEYDOWN:
+                        if self.current_state == "play":
+                            if event.key == pygame.K_ESCAPE:
+                                self.change_state("menu")
+                        if self.current_state == "saveload":
+                            if event.key == pygame.K_ESCAPE:
+                                self.change_state("menu")
 
-                # If we're in the Mining state, process ore button events
-                if isinstance(self.current_state, Mining):
-                    self.current_state.ore_button_manager.process_events(event)
+                    # Pass events to the UI managers
+                    button_manager.process_events(event)
+                    selection_list_manager.process_events(event)
+                    panel_manager.process_events(event)
 
-                # Let the current state handle the event
-                self.current_state.handle_event(event)
+                    # Let current state handle events
+                    self.current_state.handle_event(event)
 
-            # Update game state
-            self.current_state.update(td)
+                # Update
+                button_manager.update(time_delta)
+                selection_list_manager.update(time_delta)
+                panel_manager.update(time_delta)
+                self.current_state.update(time_delta)
 
-            # Draw everything
-            self.current_state.draw()
+                # Draw
+                self.screen.fill((0, 0, 0))  # Clear screen
+                self.current_state.draw()
+                button_manager.draw_ui(self.screen)
+                selection_list_manager.draw_ui(self.screen)
+                panel_manager.draw_ui(self.screen)
 
-            # Update display
-            pygame.display.flip()
+                pygame.display.flip()  # Update the display
 
-            button_manager.update(td)
-            selection_list_manager.update(td)
-            panel_manager.update(td)
+        except KeyboardInterrupt:
+            print("Game interrupted by user (Ctrl+C)")
+        except Exception as e:
+            print(f"Error in game loop: {e}")
+        finally:
+            self.quit()
 
     def quit(self):
-        pygame.quit()
+        # Perform any necessary cleanup
+        try:
+            print("Shutting down game...")
+            pygame.mixer.quit()  # Clean up mixer if used
+            pygame.quit()
+        except Exception as e:
+            print(f"Error during cleanup: {e}")
         sys.exit()
 
 
 if __name__ == "__main__":
-    game = Game()
-    game.run()
+    try:
+        game = Game()
+        game.run()
+    except Exception as e:
+        print(f"Unhandled exception: {e}")
+        pygame.quit()
+        sys.exit(1)

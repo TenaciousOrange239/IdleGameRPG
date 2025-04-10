@@ -32,8 +32,8 @@
         "max_xp": 100
       },
       "combat": {
-        "level": 1,
-        "xp": 0,
+        "level": 4,
+        "xp": 30,
         "max_xp": 100
       }
     },
@@ -44,7 +44,15 @@
       "equipment": {}
     },
     "game_time": 0,
-    "last_save": null
+    "last_save": null,
+    "combat_stats": {
+      "max_hp": 100,
+      "current_hp": 100,
+      "attack": 10,
+      "defense": 5,
+      "accuracy": 70,
+      "dodge": 10
+    }
   },
   "activity_data": {
     "mining": {
@@ -69,5 +77,5 @@
       }
     }
   },
-  "timestamp": "2025-04-06T19:57:34.124088"
+  "timestamp": "2025-04-09T12:43:33.583309"
 }
